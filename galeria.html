@@ -1,0 +1,52 @@
+<!DOCTYPE html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&family=Quicksand:wght@500;600;700&display=swap" rel="stylesheet"><link rel="stylesheet" href="style.css"><link rel="icon" href="images/logo.jpg"><title>Galería de fotos y stock · Mari Rock Nails</title></head><body><nav class="nav"><a href="index.html">INICIO</a><a href="medicion.html">GUÍA DE MEDICIÓN</a><a href="aplicacion.html">GUÍA DE APLICACIÓN</a><a href="galeria.html" aria-current="page">GALERÍA DE FOTOS Y STOCK</a></nav><main>
+<section class="sec"><div class="inner"><img class="logo-s" src="images/logo.jpg" alt="Mari Rock Nails"><h1>GALERÍA DE FOTOS Y STOCK</h1>
+<p>Elegí tus diseños favoritos y tocá <b>Agregar pedido a carrito</b>. Cuando termines, enviá el pedido por WhatsApp y lo confirmamos juntas.</p></div></section>
+<div class="gal" id="gal"></div></main>
+<button class="cartbtn" id="cartbtn" aria-label="Abrir carrito"><svg viewBox="0 0 24 24"><path d="M7 18a2 2 0 1 0 0 4 2 2 0 0 0 0-4zm10 0a2 2 0 1 0 0 4 2 2 0 0 0 0-4zM1 2v2h2l3.6 7.6-1.4 2.4A2 2 0 0 0 7 17h12v-2H7.400l1.100-2h7.500a2 2 0 0 0 1.700-1l3.600-6.500A1 1 0 0 0 20 4H5.200l-.9-2H1z"/></svg>Carrito (<span id="cnt">0</span>)</button>
+<div class="panel" id="panel" role="dialog" aria-label="Carrito de compras"><div class="in"><h2>TU PEDIDO</h2><div id="list"></div>
+<a class="btn wa" id="send" href="#" target="_blank" rel="noopener" style="margin-top:16px">ENVIAR PEDIDO POR WHATSAPP</a>
+<button class="close" id="empty" style="margin-right:8px">Vaciar</button><button class="close" id="close">Cerrar</button></div></div>
+<div class="toast" id="toast" role="status" aria-live="polite">Agregado al carrito</div>
+<footer>Mari Rock Nails · Press On</footer>
+<script>
+const TOTAL=29;            // cantidad de fotos (foto1.jpg ... foto29.jpg)
+const AGOTADAS=[];         // números de fotos sin stock, ej: [3,12]
+const WA="5493541666225";
+let cart={};
+try{cart=JSON.parse(localStorage.getItem("mrcart")||"{}")}catch(e){}
+const $=id=>document.getElementById(id);
+const save=()=>{try{localStorage.setItem("mrcart",JSON.stringify(cart))}catch(e){}};
+const src=n=>"images/foto"+n+".jpg";
+const gal=$("gal");
+for(let n=1;n<=TOTAL;n++){
+  const out=AGOTADAS.includes(n);
+  const d=document.createElement("div");d.className="item";
+  d.innerHTML='<img src="'+src(n)+'" alt="Diseño foto '+n+'" loading="lazy"><div class="t">Foto '+n+'</div>'+
+  '<button class="add" data-n="'+n+'"'+(out?" disabled":"")+'>'+(out?"Agotado":"Agregar pedido a carrito")+'</button>';
+  gal.appendChild(d);
+}
+gal.addEventListener("click",e=>{
+  const b=e.target.closest(".add");if(!b||b.disabled)return;
+  const n=b.dataset.n;cart[n]=(cart[n]||0)+1;save();render();toast("Foto "+n+" agregada");
+});
+function toast(t){const e=$("toast");e.textContent=t;e.classList.add("on");setTimeout(()=>e.classList.remove("on"),1500)}
+function render(){
+  const ks=Object.keys(cart);
+  $("cnt").textContent=ks.reduce((a,k)=>a+cart[k],0);
+  $("list").innerHTML=ks.length?ks.map(k=>'<div class="row"><img src="'+src(k)+'" alt=""><span>Foto '+k+' × '+cart[k]+'</span><button data-m="'+k+'" aria-label="Quitar uno">−</button><button data-p="'+k+'" aria-label="Agregar uno">+</button></div>').join(""):"<p>Tu carrito está vacío.</p>";
+  let msg="¡Hola! Quiero hacer este pedido de press on:\n";
+  ks.forEach(k=>{msg+="• Foto "+k+" × "+cart[k]+" → "+new URL(src(k),location.href).href+"\n"});
+  $("send").href="https://wa.me/"+WA+"?text="+encodeURIComponent(msg);
+  $("send").style.display=ks.length?"flex":"none";
+}
+$("list").addEventListener("click",e=>{
+  const m=e.target.dataset.m,p=e.target.dataset.p;
+  if(m){cart[m]--;if(cart[m]<=0)delete cart[m]}
+  if(p)cart[p]++;
+  save();render();
+});
+$("cartbtn").onclick=()=>$("panel").classList.add("open");
+$("close").onclick=()=>$("panel").classList.remove("open");
+$("empty").onclick=()=>{cart={};save();render()};
+render();
+</script></body></html>
